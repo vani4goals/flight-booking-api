@@ -7,22 +7,31 @@ A sample REST API for searching and booking flights, built with **FastAPI** and 
 ```
 flight-booking-api/
 ├── app/
-│   ├── main.py              # FastAPI app & router registration
+│   ├── __init__.py
+│   ├── main.py                     # FastAPI app, root endpoint & router registration
 │   ├── models/
-│   │   ├── flight.py        # Flight Pydantic models
-│   │   └── booking.py       # Booking Pydantic models
+│   │   ├── __init__.py
+│   │   ├── flight.py               # Flight, FlightCreate, FlightUpdate
+│   │   └── booking.py              # Booking, BookingCreate, BookingUpdate, BookingStatus
 │   ├── routes/
-│   │   ├── flights.py       # Flight CRUD endpoints
-│   │   └── bookings.py      # Booking endpoints
+│   │   ├── __init__.py
+│   │   ├── flights.py              # Flight CRUD endpoints
+│   │   └── bookings.py             # Booking endpoints
 │   └── services/
-│       ├── flight_service.py   # Flight business logic
-│       └── booking_service.py  # Booking business logic
+│       ├── __init__.py
+│       ├── flight_service.py       # Flight business logic & in-memory store
+│       └── booking_service.py      # Booking business logic & seat accounting
 ├── tests/
+│   ├── __init__.py
 │   ├── test_flights.py
 │   └── test_bookings.py
 ├── requirements.txt
-└── .gitignore
+└── README.md
 ```
+
+The two service modules share mutable state: `booking_service` imports the
+flight store from `flight_service` so that booking and cancellation can adjust
+seat availability directly.
 
 ## Quick Start
 
@@ -41,6 +50,10 @@ uvicorn app.main:app --reload
 API docs available at: http://localhost:8000/docs
 
 ## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/` | Welcome message |
 
 ### Flights
 | Method | Path | Description |
@@ -68,5 +81,6 @@ pytest tests/ -v
 
 ## Notes
 
-- The in-memory store in `services/` is intentional for this template. Replace with SQLAlchemy + a real DB for production.
-- Seat availability is enforced at booking time and restored on cancellation.
+- The in-memory store in `services/` is intentional for this template. Replace with SQLAlchemy + a real DB for production. All state is lost when the process exits.
+- Seat availability is enforced at booking time and restored on cancellation. `DELETE /bookings/{id}` removes the booking record outright and returns its seats to the flight; setting the status to `cancelled` via `PATCH` marks the booking without restoring seats.
+- Deleting a flight leaves any existing bookings pointing at an ID that no longer resolves.
