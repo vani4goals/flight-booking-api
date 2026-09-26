@@ -1,3 +1,10 @@
+"""Business logic for creating and cancelling flight bookings.
+
+Bookings are held in a process-local dictionary alongside the flight store in
+`flight_service`. Creating and cancelling a booking writes through to that
+store to keep seat counts in step, so the two modules share mutable state.
+"""
+
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -11,13 +18,27 @@ _flight_service = FlightService()
 
 
 class BookingService:
+    """Booking operations, including the seat accounting they imply."""
+
     def list_bookings(self) -> List[Booking]:
+        """Return every stored booking, including cancelled-status ones."""
         return list(_bookings.values())
 
     def get_booking(self, booking_id: str) -> Optional[Booking]:
+        """Return the booking with this ID, or None if there is no such booking."""
         return _bookings.get(booking_id)
 
     def create_booking(self, payload: BookingCreate) -> Booking:
+        """Book seats on a flight and return the confirmed booking.
+
+        Deducts the booked seats from the flight's availability and prices the
+        booking at the flight's current price times the seat count. The new
+        booking's ID is generated here as a UUID4 string.
+
+        Raises:
+            ValueError: if the flight ID does not resolve, or if the flight has
+                fewer seats available than requested.
+        """
         flight = _flight_service.get_flight(payload.flight_id)
         if not flight:
             raise ValueError(f"Flight {payload.flight_id} not found")
@@ -43,6 +64,15 @@ class BookingService:
         return booking
 
     def update_booking(self, booking_id: str, payload: BookingUpdate) -> Optional[Booking]:
+        """Apply a partial update to a booking and return the updated copy.
+
+        Only the fields set on the payload are written; fields left as None are
+        ignored. Returns None if no booking has this ID.
+
+        Note that this does not touch seat availability. Setting the status to
+        `cancelled` through this method marks the booking without returning its
+        seats to the flight; `cancel_booking` is what restores them.
+        """
         booking = _bookings.get(booking_id)
         if not booking:
             return None
@@ -51,6 +81,13 @@ class BookingService:
         return updated
 
     def cancel_booking(self, booking_id: str) -> bool:
+        """Delete a booking and return its seats to the flight.
+
+        Returns True if the booking existed and False otherwise. The booking
+        record is removed outright rather than kept with a cancelled status. If
+        the referenced flight has since been deleted, the booking is still
+        removed and the seat restoration is skipped.
+        """
         booking = _bookings.get(booking_id)
         if not booking:
             return False
