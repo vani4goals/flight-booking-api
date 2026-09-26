@@ -1,0 +1,8 @@
+{
+  "theme": "dark",
+  "autoUpdates": false,
+  "statusline": {
+    "enabled": true,
+    "script": "/root/.claude/statusline.sh"
+  }
+}
