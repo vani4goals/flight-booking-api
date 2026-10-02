@@ -53,6 +53,13 @@ class TestCreateFlight:
         second = service.create_flight(SAMPLE_FLIGHT)
         assert first.id != second.id
 
+    def test_all_payload_fields_stored(self, service):
+        flight = service.create_flight(SAMPLE_FLIGHT)
+        assert flight.airline == "SkyWay Airlines"
+        assert flight.seats_available == 50
+        assert flight.departure_time == SAMPLE_FLIGHT.departure_time
+        assert flight.arrival_time == SAMPLE_FLIGHT.arrival_time
+
 
 class TestSearchFlights:
     def test_no_filters_returns_all(self, service):
@@ -88,6 +95,34 @@ class TestSearchFlights:
 
     def test_empty_store_returns_empty_list(self, service):
         assert service.search_flights(None, None) == []
+
+    def test_partial_origin_not_matched(self, service):
+        # Docstring guarantees no partial/fuzzy matches — "NY" must not match "NYC"
+        service.create_flight(SAMPLE_FLIGHT)
+        assert service.search_flights("NY", None) == []
+
+    def test_partial_destination_not_matched(self, service):
+        service.create_flight(SAMPLE_FLIGHT)
+        assert service.search_flights(None, "LA") == []
+
+    def test_both_filters_cross_miss_returns_empty(self, service):
+        # NYC->LAX and SFO->ORD exist; NYC->ORD should yield nothing
+        service.create_flight(SAMPLE_FLIGHT)
+        service.create_flight(OTHER_FLIGHT)
+        assert service.search_flights("NYC", "ORD") == []
+
+    def test_empty_string_origin_treated_as_no_filter(self, service):
+        service.create_flight(SAMPLE_FLIGHT)
+        service.create_flight(OTHER_FLIGHT)
+        # "" is falsy — both flights should be returned
+        results = service.search_flights("", None)
+        assert len(results) == 2
+
+    def test_empty_string_destination_treated_as_no_filter(self, service):
+        service.create_flight(SAMPLE_FLIGHT)
+        service.create_flight(OTHER_FLIGHT)
+        results = service.search_flights(None, "")
+        assert len(results) == 2
 
 
 class TestGetFlight:
@@ -129,6 +164,17 @@ class TestUpdateFlight:
         result = service.update_flight("nonexistent-id", FlightUpdate(price=1.0))
         assert result is None
 
+    def test_update_preserves_flight_id(self, service):
+        created = service.create_flight(SAMPLE_FLIGHT)
+        updated = service.update_flight(created.id, FlightUpdate(price=1.0))
+        assert updated.id == created.id
+
+    def test_update_seats_available_only(self, service):
+        created = service.create_flight(SAMPLE_FLIGHT)
+        updated = service.update_flight(created.id, FlightUpdate(seats_available=5))
+        assert updated.seats_available == 5
+        assert updated.price == created.price
+
 
 class TestDeleteFlight:
     def test_deletes_existing_flight(self, service):
@@ -138,3 +184,20 @@ class TestDeleteFlight:
 
     def test_returns_false_when_missing(self, service):
         assert service.delete_flight("nonexistent-id") is False
+
+    def test_delete_twice_returns_false(self, service):
+        created = service.create_flight(SAMPLE_FLIGHT)
+        service.delete_flight(created.id)
+        assert service.delete_flight(created.id) is False
+
+    def test_delete_leaves_other_flights_intact(self, service):
+        first = service.create_flight(SAMPLE_FLIGHT)
+        second = service.create_flight(OTHER_FLIGHT)
+        service.delete_flight(first.id)
+        assert second.id in _flights
+        assert first.id not in _flights
+
+    def test_delete_then_get_returns_none(self, service):
+        created = service.create_flight(SAMPLE_FLIGHT)
+        service.delete_flight(created.id)
+        assert service.get_flight(created.id) is None
