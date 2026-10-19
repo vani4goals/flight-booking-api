@@ -32,6 +32,7 @@ Scored against [`docs/rubric.md`](rubric.md) (scale: 1 = Does Not Meet, 2 = Part
 |--------|-------|--------|
 | Cycle time | 3 minutes 15.352 seconds | `time claude ...` (`real`) |
 | Review latency | Not measured | No review start/end timestamps were recorded |
+| Human review duration (retrospective) | 30 minutes | Reported by the reviewer; a retrospective review completed after the run, recorded 2026-10-19. This is the review's duration, not the original review latency, which remains not measured. |
 | Input tokens | 1,706 (Opus 5.5: 528; Haiku 5.5: 1,178) | Claude Code `cost-state` record, session `fcdc80bb-2651-4971-9d71-27a90bbce55e` |
 | Output tokens | 4,643 (Opus 5.5: 4,626; Haiku 5.5: 17) | Claude Code `cost-state` record |
 | Cache read / write tokens | 517,039 / 25,789 (Opus 5.5) | Claude Code `cost-state` record |
@@ -46,6 +47,10 @@ Scored against [`docs/rubric.md`](rubric.md) (scale: 1 = Does Not Meet, 2 = Part
 ### Observations
 
 The agent noticed that `tests/test_flight_service.py` already existed and extended it from 29 to 42 tests without removing any. `app/services/flight_service.py` was left unchanged, and both the targeted suite (42 passed) and the full suite (80 passed) were green. The agent did not commit its work, which is the sole reason the run failed; the baseline prompt omitted the PRD's "Commit in logical chunks" instruction. The new `test_delete_leaves_existing_bookings_in_place` test depends on `BookingService`, coupling the flight-service tests to booking-service behavior. The agent's final summary claimed 15 tests were added when 13 were.
+
+### Retrospective human review
+
+A human reviewer completed a retrospective review of Run 001 lasting 30 minutes, recorded on 2026-10-19. It took place after the run, so it does not provide the original review latency (time from the agent finishing to review completion); that metric remains not measured. The baseline measurements above are unchanged. The 21/24 rubric score remains the original score; it is not recorded as human-validated because the review has not been confirmed to validate it.
 
 ### Changes made
 
