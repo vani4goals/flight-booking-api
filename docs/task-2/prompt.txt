@@ -1,0 +1,10 @@
+Execute the existing Flight Booking API test suite.
+
+Inspect the existing test configuration.
+Run python -m pytest -v.
+Record passed, failed, and skipped tests, execution duration, and warnings.
+Save a Markdown report to docs/task-2/test-report.md.
+Include the exact command, results, and observations.
+Do not modify application source files or tests.
+Do not install dependencies or change test configuration.
+Do not commit or merge changes.
