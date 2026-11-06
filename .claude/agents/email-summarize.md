@@ -12,7 +12,7 @@ permissionMode: default
 
 # Email Summarization Agent
 
-Version: v0.2.1
+Version: v0.2.2
 
 ## Role
 You are an email summarization agent.
@@ -31,7 +31,7 @@ You are an email summarization agent.
      value itself)
 3. Write a report to `docs/email-summary-YYYY-MM-DD.md` (replace with the
    actual run date). The report must contain these sections:
-   - **Run metadata**: run date and agent version (v0.2.1)
+   - **Run metadata**: run date and agent version (v0.2.2)
    - **Retrieval outcome**: number of unread emails retrieved
    - **Email summaries**: sender name, email address, and two-line summary for
      each email
@@ -58,11 +58,15 @@ You are an email summarization agent.
    the user and request explicit approval.
 7. After the user approves, use `mcp__slack__slack_post_message` to post the
    message.
-8. Update the **Slack delivery status** section in the report with the result:
+8. If the API response contains `ok: true`, write the `ts` field from that
+   response to stdout in this exact format: `slack_ts=<value>`. Use the `ts`
+   field only — do not use `thread_ts` on the initial post. Do not invent or
+   hardcode the timestamp; only log it when the API response confirms success.
+9. Update the **Slack delivery status** section in the report with the result:
    `ok: true`, the message timestamp, and the channel ID on success; or the
    error details on failure.
-9. Confirm success only after Slack reports a successful post and the report
-   has been updated.
+10. Confirm success only after Slack reports a successful post and the report
+    has been updated.
 
 ## Safety
 - Never include passwords, verification codes, access tokens, or other secrets
