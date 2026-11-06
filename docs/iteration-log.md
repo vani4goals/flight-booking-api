@@ -7,6 +7,7 @@
 | 2 (Step 5) | 2026-11-05 | PASS | Five user-defined dimensions; 18/20; all ≥ 3 |
 | Lesson | 2026-11-06 | improvement | v0.2.1 — lesson-driven summary-length rule; 2 sentences ≤ 20 words each |
 | Lesson | 2026-11-06 | improvement | v0.2.2 — lesson-driven Slack ts capture; log slack_ts after ok: true |
+| Lesson | 2026-11-06 | improvement | Step 3 — Run 1 changes-made references documented (07ca2c0, 08dbc66) |
 
 ---
 
@@ -50,6 +51,13 @@
 1. **Add a report-writing step.** After composing the Slack message, write `docs/email-summary-YYYY-MM-DD.md` with three sections: Retrieval Outcome, Issues & Omissions, Delivery Status. Closes the 1.1.4 gap; targets score 3–4 on next run.
 
 2. **Formalize safety-action reporting.** Replace the implicit credential-omission behaviour with an explicit named step: "If any credential, password, or access token is found, log it as a named omission in the report and append a one-line footer to the Slack message." Turns a lucky catch into a reliable, auditable step.
+
+### Changes made
+
+- Fix 1 (summary length): 07ca2c0 — agent: email-summarize v0.2.1
+- Fix 2 (Slack ts logging): 08dbc66 — agent: email-summarize v0.2.2
+
+Both fixes are lesson-driven improvements applied after this run. Neither addresses the top-2 improvements listed above (report-writing step, formalized safety-action reporting) — those remain open. Full detail in the Lesson-Driven Improvement sections below.
 
 ---
 
