@@ -6,6 +6,7 @@
 | 2 | 2026-11-05 | PASS | All four dimensions ≥ 3; 1.1.4 improved 1 → 3 with report-writing step |
 | 2 (Step 5) | 2026-11-05 | PASS | Five user-defined dimensions; 18/20; all ≥ 3 |
 | Lesson | 2026-11-06 | improvement | v0.2.1 — lesson-driven summary-length rule; 2 sentences ≤ 20 words each |
+| Lesson | 2026-11-06 | improvement | v0.2.2 — lesson-driven Slack ts capture; log slack_ts after ok: true |
 
 ---
 
@@ -175,6 +176,39 @@ Summaries in earlier versions had no defined length constraint. The lesson ident
 
 ### What did not change
 
+- Retrieval, approval-gate, and report-writing steps are unchanged.
+- Credential-omission logic is unchanged.
+- Run 1 and Run 2 evaluation scores are unaffected; this rule was not in scope for either run.
+
+---
+
+## Lesson-Driven Improvement — 2026-11-06
+
+**Agent:** email-summarize v0.2.2
+**Commit:** 08dbc66
+**Source:** Module 2, Lesson Step 2 — Slack thread_ts handling
+
+### Change description
+
+v0.2.2 introduces correct Slack thread timestamp handling derived from lesson guidance, not from an observed misfire in any run evaluation.
+
+Three concrete rules now govern every Slack API interaction:
+
+1. **Initial post must omit thread_ts.** The first `slack_post_message` call for a session must not include a `thread_ts` parameter. Sending `thread_ts` on the initial post would create a reply into a non-existent thread and silently misbehave on some Slack API versions.
+
+2. **Capture ts from the successful response.** After the API returns `ok: true`, the agent reads the `ts` field from the response body and stores it as the session's Slack timestamp.
+
+3. **Log the captured timestamp.** The agent writes a log line in the format `slack_ts=<value>` immediately after capturing the timestamp. This makes the captured value visible in the run record and traceable in future evaluations.
+
+4. **Use captured ts as thread_ts for replies.** Any subsequent message sent to the same thread must pass the captured `ts` as `thread_ts`. This ensures follow-up posts appear as thread replies rather than new top-level messages.
+
+### Motivation
+
+Earlier versions posted to Slack and recorded the returned timestamp in the report (e.g., `1793898972.565579` in Run 1, `1793900226.888999` in Run 2), but had no explicit rule about whether to include `thread_ts` on the initial call or how to propagate `ts` for follow-up replies. The lesson identified that omitting this protocol leaves thread reply behavior undefined and makes multi-step Slack interactions unreliable.
+
+### What did not change
+
+- Summary-length rule from v0.2.1 is unchanged.
 - Retrieval, approval-gate, and report-writing steps are unchanged.
 - Credential-omission logic is unchanged.
 - Run 1 and Run 2 evaluation scores are unaffected; this rule was not in scope for either run.
