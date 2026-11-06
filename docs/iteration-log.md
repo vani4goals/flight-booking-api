@@ -5,6 +5,7 @@
 | 1 | 2026-11-05 | FAIL | 1.1.4 Report Completeness scored 1 — no docs/ artifact written |
 | 2 | 2026-11-05 | PASS | All four dimensions ≥ 3; 1.1.4 improved 1 → 3 with report-writing step |
 | 2 (Step 5) | 2026-11-05 | PASS | Five user-defined dimensions; 18/20; all ≥ 3 |
+| Lesson | 2026-11-06 | improvement | v0.2.1 — lesson-driven summary-length rule; 2 sentences ≤ 20 words each |
 
 ---
 
@@ -152,3 +153,28 @@
 1. **Pre-filter personal identifiers before drafting.** Before composing the Slack message or Email Summaries section, explicitly scan each two-line summary for personal names of non-public individuals, school- or event-specific details, and device identifiers. Replace with generic descriptions (e.g., "school event reminder", "personal device"). Prevents the revision cycle and the report inconsistency at their source.
 
 2. **Cross-validate credential omissions against email summaries body.** After writing the Credential Omissions section, scan the Email Summaries section for each flagged item type and confirm it does not appear verbatim. If a match is found, redact before saving the report. Closes the internal inconsistency gap observed in this run.
+
+---
+
+## Lesson-Driven Improvement — 2026-11-06
+
+**Agent:** email-summarize v0.2.1
+**Commit:** 07ca2c0
+**Source:** Lesson Step 1 — summary-length guidance
+
+### Change description
+
+v0.2.1 introduces a summary-length rule derived from lesson feedback, not from a run evaluation failure. The rule applies to every email summary the agent composes:
+
+1. **Two complete sentences per email, each 20 words or fewer.** The agent must not write more than two sentences per summary, and neither sentence may exceed 20 words.
+2. **First 500 characters only for long emails.** When an email body exceeds 500 characters, the agent uses only the first 500 characters as input for summarization. The remainder of the body is not read into the summary.
+
+### Motivation
+
+Summaries in earlier versions had no defined length constraint. The lesson identified that open-ended summarization risks verbosity and can inadvertently include sensitive detail from deeper in an email body. Capping input at 500 characters bounds what the agent can expose; capping output at two short sentences keeps the Slack message scannable.
+
+### What did not change
+
+- Retrieval, approval-gate, and report-writing steps are unchanged.
+- Credential-omission logic is unchanged.
+- Run 1 and Run 2 evaluation scores are unaffected; this rule was not in scope for either run.
